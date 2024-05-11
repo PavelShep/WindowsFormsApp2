@@ -131,6 +131,7 @@ namespace WindowsFormsApp2
             if (listViewVillas.SelectedItems.Count > 0)
             {
                 var selectedItem = listViewVillas.SelectedItems[0];
+                txtSearchId.Text = selectedItem.SubItems[0].Text; 
                 txtName.Text = selectedItem.SubItems[1].Text;
                 txtDetails.Text = selectedItem.SubItems[2].Text;
                 txtRate.Text = selectedItem.SubItems[3].Text;
