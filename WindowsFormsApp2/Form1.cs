@@ -126,6 +126,21 @@ namespace WindowsFormsApp2
             }
         }
 
+        private void listViewVillas_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listViewVillas.SelectedItems.Count > 0)
+            {
+                var selectedItem = listViewVillas.SelectedItems[0];
+                txtName.Text = selectedItem.SubItems[1].Text;
+                txtDetails.Text = selectedItem.SubItems[2].Text;
+                txtRate.Text = selectedItem.SubItems[3].Text;
+                txtSqft.Text = selectedItem.SubItems[4].Text;
+                txtOccupancy.Text = selectedItem.SubItems[5].Text;
+                txtImageUrl.Text = selectedItem.SubItems[6].Text;
+            }
+        }
+
+
         private async Task UpdateVilla(Villa villa)
         {
             try
@@ -174,7 +189,84 @@ namespace WindowsFormsApp2
                 MessageBox.Show("Failed to delete villa: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private async void btnShow_Click(object sender, EventArgs e)
+        {
+            listViewVillas.Items.Clear();
+            await LoadVillas();
+        }
+
+        private async void btnSearch_Click(object sender, EventArgs e)
+        {
+
+            if (int.TryParse(txtSearchId.Text, out int searchId))
+            {
+                Villa villa = await GetVillaById(searchId);
+                if (villa != null)
+                {
+                    listViewVillas.Items.Clear();
+
+                    var item = new ListViewItem(villa.Id.ToString());
+                    item.SubItems.Add(villa.Name);
+                    item.SubItems.Add(villa.Details);
+                    item.SubItems.Add(villa.Rate.ToString());
+                    item.SubItems.Add(villa.Sqft.ToString());
+                    item.SubItems.Add(villa.Occupancy.ToString());
+                    item.SubItems.Add(villa.ImageUrl);
+                    listViewVillas.Items.Add(item);
+
+                    txtName.Text = villa.Name;
+                    txtDetails.Text = villa.Details;
+                    txtRate.Text = villa.Rate.ToString();
+                    txtSqft.Text = villa.Sqft.ToString();
+                    txtOccupancy.Text = villa.Occupancy.ToString();
+                    txtImageUrl.Text = villa.ImageUrl;
+                }
+                else
+                {
+                    txtSearchId.Clear();
+                    txtName.Clear();
+                    txtDetails.Clear();
+                    txtRate.Clear();
+                    txtSqft.Clear();
+                    txtOccupancy.Clear();
+                    txtImageUrl.Clear();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Invalid id format. Please enter a valid integer id.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async Task<Villa> GetVillaById(int id)
+        {
+            try
+            {
+                HttpResponseMessage response = await httpClient.GetAsync($"{apiUrl}/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    Villa villa = JsonConvert.DeserializeObject<Villa>(json);
+                    return villa;
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to get villa with id {id}: " + response.ReasonPhrase, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to get villa with id {id}: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+        }
+
+
     }
+
 
     public class Villa
     {
